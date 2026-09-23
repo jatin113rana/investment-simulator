@@ -1,0 +1,18 @@
+// Prisma Schema for Investment Simulator
+// Database: PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Baseline model for verifying database connectivity
+model HealthCheck {
+  id        String   @id @default(uuid())
+  status    String   @default("ok")
+  createdAt DateTime @default(now())
+}
