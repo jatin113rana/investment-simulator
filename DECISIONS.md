@@ -36,32 +36,32 @@ Slightly higher initial boilerplate and build-time compilation overhead compared
 
 ---
 
-## Decision: PostgreSQL
+## Decision: PostgreSQL & Neon Serverless
 
 ### Context
-The application requires a robust relational database capable of enforcing ACID transactions, foreign key constraints, decimal precision types, and strict data consistency for financial ledgers and classroom structures.
+The application requires a robust relational database capable of enforcing ACID transactions, foreign key constraints, decimal precision types, versioned migration files, and strict data consistency for financial ledgers and classroom structures.
 
 ### Decision
-We chose PostgreSQL as the primary relational database.
+We chose Neon Serverless PostgreSQL as our database cloud infrastructure with Prisma migrations (`npx prisma migrate dev`).
 
 ### Reason
-PostgreSQL is an industry-standard open-source relational database with native support for `DECIMAL` / `NUMERIC` types, reliable ACID transactions, strong indexing capabilities, and seamless compatibility with Prisma ORM.
+Neon provides fully serverless PostgreSQL with instant branching, connection pooling, native `DECIMAL` / `NUMERIC` support, and seamless integration with Prisma ORM.
 
 ### Tradeoffs
-Requires running a local PostgreSQL instance or managed container/service during local development compared to SQLite.
+Requires active network connectivity to the Neon cloud endpoint during development.
 
 ---
 
-## Decision: Prisma ORM
+## Decision: Prisma ORM & Versioned Database Migrations
 
 ### Context
 We needed a type-safe database client and migration tool to interact with PostgreSQL from Next.js server components and API routes.
 
 ### Decision
-We chose Prisma ORM.
+We chose Prisma ORM with versioned migration SQL files (`prisma/migrations/`).
 
 ### Reason
-Prisma generates fully typed TypeScript database clients directly from the `schema.prisma` schema definition. It provides intuitive declarative migrations, handles complex relational queries cleanly, and natively maps PostgreSQL `DECIMAL` types to `Decimal` objects.
+Prisma generates fully typed TypeScript database clients directly from `schema.prisma`. Generating explicit migration files tracks schema history in version control, ensuring smooth environment deployments (`npx prisma migrate deploy`).
 
 ### Tradeoffs
 Prisma abstracts raw SQL queries, which can occasionally require raw SQL escape hatches for highly specialized bulk queries.
@@ -84,19 +84,51 @@ Students do not experience actual financial risk or real-world monetary conseque
 
 ---
 
-## Decision: Real mutual fund data/performance
+## Decision: Real mutual fund data/performance via Official AMFI Daily Feed
 
 ### Context
-Choosing between simulated random market prices versus real-world mutual fund market data.
+Selecting an authoritative, reliable, and up-to-date market-data ingestion source for Indian mutual fund Net Asset Values (NAVs).
 
 ### Decision
-We chose to ingest and display real mutual fund market data and daily Net Asset Values (NAVs).
+We chose the official AMFI (Association of Mutual Funds in India) daily data feed (`https://portal.amfiindia.com/spages/NAVAll.txt`).
 
 ### Reason
-Using real fund performance exposes students to authentic market conditions, real asset allocation dynamics, and genuine historical performance trends, significantly enhancing the educational value compared to synthetic random-walk data.
+AMFI is the official regulatory industry body mandated by SEBI. Every asset management company in India is legally required to upload daily NAVs to this file every business night by 11:00 PM IST. Unlike third-party API mirrors which suffer from scrapers lagging days behind, AMFI provides 100% data freshness, zero cost, and zero rate limits.
 
 ### Tradeoffs
-Requires setting up external market data ingestion adapters, handling missing market holiday data, and managing external API dependency constraints.
+Requires parsing a semicolon-delimited text format in Node.js instead of receiving JSON.
+
+---
+
+## Decision: Indian Rupee (₹ / INR) Currency Denomination
+
+### Context
+Determining the financial currency denomination for virtual cash, starting balances, NAV values, and trade orders.
+
+### Decision
+We strictly use Indian Rupee (₹ / INR) as the baseline currency across the entire application.
+
+### Reason
+All mutual fund NAV data ingested from AMFI is priced in INR (₹). Standardizing on ₹ ensures consistency between student virtual cash, fund unit pricing, and portfolio valuations.
+
+### Tradeoffs
+The application is tailored primarily for INR financial denomination.
+
+---
+
+## Decision: Clerk Authentication with Role-Based Access Control (RBAC) & Phone Auth
+
+### Context
+Choosing an authentication framework to manage user signups, logins, sessions, and multi-tier user authorization roles supporting both Email and Phone Number authentication methods.
+
+### Decision
+We chose Clerk (`@clerk/nextjs`) supporting both Email and Phone Number SMS OTP sign-in, mapped to database `User.email` (optional) and `User.phoneNumber` (optional).
+
+### Reason
+Clerk provides pre-built, production-ready UI components (`<SignIn />`, `<SignUp />`, `<UserButton />`), middleware route protection (`clerkMiddleware()`), and webhook syncing to our Neon database `User` table. Supporting Phone Number authentication offers frictionless onboarding for students and teachers who prefer SMS OTP over traditional email passwords.
+
+### Tradeoffs
+Introduces a third-party managed identity service dependency.
 
 ---
 
@@ -122,7 +154,7 @@ Slightly increased server computation load per request, which is negligible for 
 JavaScript numbers (`number`) use IEEE-754 double-precision floating-point format, which introduces floating-point precision errors (e.g. `0.1 + 0.2 === 0.30000000000000004`).
 
 ### Decision
-All money amounts, NAV prices, fund units, and transaction values must use `Decimal` objects (via `decimal.js` and Prisma `Decimal`) in code and `DECIMAL` / `NUMERIC` types in PostgreSQL.
+All money amounts, NAV prices, fund units, and transaction values must use `Decimal` objects (via `decimal.js` and Prisma `Decimal`) in code and `@db.Decimal(18, 4)` types in PostgreSQL.
 
 ### Reason
 Financial calculations must be mathematically exact to avoid penny-rounding discrepancies, accounting drift, and invalid balance comparisons.

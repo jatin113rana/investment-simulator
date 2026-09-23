@@ -1,5 +1,5 @@
 // Prisma Schema for Investment Simulator
-// Database: PostgreSQL
+// Database: Neon Serverless PostgreSQL
 
 generator client {
   provider = "prisma-client-js"
@@ -10,9 +10,168 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-/// Baseline model for verifying database connectivity
-model HealthCheck {
-  id        String   @id @default(uuid())
-  status    String   @default("ok")
-  createdAt DateTime @default(now())
+// ==========================================
+// ENUMS
+// ==========================================
+
+enum Role {
+  ADMIN
+  TEACHER
+  STUDENT
+}
+
+enum TransactionType {
+  BUY
+  SELL
+}
+
+enum ClassroomStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+// ==========================================
+// USER & AUTH (Synced with Clerk - Email & Phone Auth)
+// ==========================================
+
+model User {
+  id           String   @id @default(uuid())
+  clerkUserId  String   @unique // Clerk external User ID (e.g. "user_2xyz...")
+  email        String?  @unique // Optional (User may sign up via Phone)
+  phoneNumber  String?  @unique // Optional (User may sign up via Email/OAuth)
+  firstName    String?
+  lastName     String?
+  imageUrl     String?
+  role         Role     @default(STUDENT)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  createdClassrooms    Classroom[]           @relation("TeacherClassrooms")
+  classroomMemberships ClassroomMembership[] @relation("StudentMemberships")
+
+  @@index([clerkUserId])
+  @@index([email])
+  @@index([phoneNumber])
+}
+
+// ==========================================
+// CLASSROOM & MEMBERSHIPS (Rupee Currency ₹)
+// ==========================================
+
+model Classroom {
+  id             String          @id @default(uuid())
+  name           String
+  code           String          @unique // 6-character uppercase join code (e.g. "INV123")
+  startingBalance Decimal        @default(10000.0000) @db.Decimal(18, 4) // Virtual cash allocated to each student in ₹ (INR)
+  status         ClassroomStatus @default(ACTIVE)
+  teacherId      String
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  // Relations
+  teacher     User                  @relation("TeacherClassrooms", fields: [teacherId], references: [id], onDelete: Cascade)
+  memberships ClassroomMembership[]
+
+  @@index([teacherId])
+  @@index([code])
+}
+
+model ClassroomMembership {
+  id          String   @id @default(uuid())
+  studentId   String
+  classroomId String
+  cashBalance Decimal  @db.Decimal(18, 4) // Student's current available virtual cash in ₹ (INR)
+  joinedAt    DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  student      User          @relation("StudentMemberships", fields: [studentId], references: [id], onDelete: Cascade)
+  classroom    Classroom     @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  holdings     Holding[]
+  transactions Transaction[]
+
+  @@unique([studentId, classroomId]) // A student joins a classroom once
+  @@index([studentId])
+  @@index([classroomId])
+}
+
+// ==========================================
+// MARKET DATA (INDIAN MUTUAL FUNDS - AMFI)
+// ==========================================
+
+model MutualFund {
+  id          String   @id @default(uuid())
+  schemeCode  String   @unique // AMFI Scheme Code (e.g. "119060")
+  name        String   // Scheme Name (e.g. "HDFC Index Fund - NIFTY 50")
+  category    String   // e.g. "Equity Scheme - Index Funds"
+  fundHouse   String?  // Asset Management Company (e.g. "HDFC Mutual Fund")
+  currentNav  Decimal  @db.Decimal(18, 4) // Authoritative execution NAV in ₹
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  priceHistory FundPriceHistory[]
+  holdings     Holding[]
+  transactions Transaction[]
+
+  @@index([schemeCode])
+}
+
+model FundPriceHistory {
+  id         String   @id @default(uuid())
+  fundId     String
+  schemeCode String
+  date       String   // Format: "DD-MMM-YYYY" (e.g. "23-Sep-2026")
+  nav        Decimal  @db.Decimal(18, 4) // NAV in ₹
+  createdAt  DateTime @default(now())
+
+  // Relations
+  fund MutualFund @relation(fields: [fundId], references: [id], onDelete: Cascade)
+
+  @@unique([schemeCode, date])
+  @@index([schemeCode])
+  @@index([date])
+}
+
+// ==========================================
+// PORTFOLIO & TRADING LEDGER (Rupee Currency ₹)
+// ==========================================
+
+model Holding {
+  id             String   @id @default(uuid())
+  membershipId   String
+  fundId         String
+  units          Decimal  @db.Decimal(18, 4) // Total units currently owned
+  averageCostNav Decimal  @db.Decimal(18, 4) // Weighted average cost NAV in ₹
+  totalInvested  Decimal  @db.Decimal(18, 4) // Total cash invested in ₹
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  membership ClassroomMembership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  fund       MutualFund          @relation(fields: [fundId], references: [id], onDelete: Cascade)
+
+  @@unique([membershipId, fundId])
+  @@index([membershipId])
+}
+
+model Transaction {
+  id           String          @id @default(uuid())
+  membershipId String
+  fundId       String
+  type         TransactionType // BUY or SELL
+  units        Decimal         @db.Decimal(18, 4)
+  executionNav Decimal         @db.Decimal(18, 4) // Authoritative NAV at execution time in ₹
+  totalAmount  Decimal         @db.Decimal(18, 4) // Total transaction cash value in ₹
+  createdAt    DateTime        @default(now())
+
+  // Relations
+  membership ClassroomMembership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  fund       MutualFund          @relation(fields: [fundId], references: [id], onDelete: Cascade)
+
+  @@index([membershipId])
+  @@index([fundId])
+  @@index([createdAt])
 }
