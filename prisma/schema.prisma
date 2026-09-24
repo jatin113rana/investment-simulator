@@ -31,20 +31,20 @@ enum ClassroomStatus {
 }
 
 // ==========================================
-// USER & AUTH (Synced with Clerk - Email & Phone Auth)
+// USER & AUTH (Synced with Clerk - Email & Password Auth)
 // ==========================================
 
 model User {
-  id           String   @id @default(uuid())
-  clerkUserId  String   @unique // Clerk external User ID (e.g. "user_2xyz...")
-  email        String?  @unique // Optional (User may sign up via Phone)
-  phoneNumber  String?  @unique // Optional (User may sign up via Email/OAuth)
-  firstName    String?
-  lastName     String?
-  imageUrl     String?
-  role         Role     @default(STUDENT)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id          String   @id @default(uuid())
+  clerkUserId String   @unique // Clerk external User ID (e.g. "user_2xyz...")
+  email       String   @unique // Primary Email identifier
+  firstName   String?
+  lastName    String?
+  imageUrl    String?
+  passwordHash String? // Optional bcrypt hash for seed/direct authentication
+  role        Role     @default(STUDENT)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   // Relations
   createdClassrooms    Classroom[]           @relation("TeacherClassrooms")
@@ -52,7 +52,6 @@ model User {
 
   @@index([clerkUserId])
   @@index([email])
-  @@index([phoneNumber])
 }
 
 // ==========================================

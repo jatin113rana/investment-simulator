@@ -116,19 +116,35 @@ The application is tailored primarily for INR financial denomination.
 
 ---
 
-## Decision: Clerk Authentication with Role-Based Access Control (RBAC) & Phone Auth
+## Decision: Clerk Authentication with Role-Based Access Control (RBAC)
 
 ### Context
-Choosing an authentication framework to manage user signups, logins, sessions, and multi-tier user authorization roles supporting both Email and Phone Number authentication methods.
+Choosing an authentication framework to manage user signups, logins, sessions, and multi-tier user authorization roles.
 
 ### Decision
-We chose Clerk (`@clerk/nextjs`) supporting both Email and Phone Number SMS OTP sign-in, mapped to database `User.email` (optional) and `User.phoneNumber` (optional).
+We chose Clerk (`@clerk/nextjs`) supporting Email + Password authentication, mapped to database `User.email` (required).
 
 ### Reason
-Clerk provides pre-built, production-ready UI components (`<SignIn />`, `<SignUp />`, `<UserButton />`), middleware route protection (`clerkMiddleware()`), and webhook syncing to our Neon database `User` table. Supporting Phone Number authentication offers frictionless onboarding for students and teachers who prefer SMS OTP over traditional email passwords.
+Clerk provides pre-built, production-ready UI components (`<SignIn />`, `<SignUp />`, `<UserButton />`), middleware route protection (`clerkMiddleware()`), and webhook syncing to our Neon database `User` table. It eliminates password hashing boilerplate while cleanly supporting multi-tier RBAC (`ADMIN`, `TEACHER`, `STUDENT`).
 
 ### Tradeoffs
 Introduces a third-party managed identity service dependency.
+
+---
+
+## Decision: Root Route Auth Consolidation (`/`) & Admin User Provisioning
+
+### Context
+Streamlining authentication UX by consolidating sign-in and sign-up interactions directly onto the root route (`/`) and providing direct user provisioning capabilities for Admins (`/admin`).
+
+### Decision
+We consolidated all sign-in and sign-up flows directly onto the homepage (`/`) and added Admin management capabilities (`createUserByAdmin`) allowing Admins to directly create Teacher and Student accounts.
+
+### Reason
+Consolidating authentication on `/` eliminates unnecessary page redirects and provides a seamless onboarding landing page. Enabling Admin account provisioning allows school/system administrators to bulk create Teacher and Student profiles directly.
+
+### Tradeoffs
+Homepage renders a dual-mode Auth card when signed out.
 
 ---
 
@@ -177,3 +193,37 @@ Atomic transactions guarantee that either all database updates succeed together 
 
 ### Tradeoffs
 Slightly longer transaction lock duration on impacted rows during execution.
+
+---
+
+## Decision: Pre-configured Seed Accounts with Bcrypt Hashing
+
+### Context
+Ensuring instant availability of test accounts for all 3 system roles (`ADMIN`, `TEACHER`, `STUDENT`) with fixed email addresses and password `Insim@123`.
+
+### Decision
+We established a database seed script (`prisma/seed.ts`) that provisions:
+- Admin: `jatinranasiwan113@gmail.com`
+- Teacher: `jatinwork1000@gmail.com`
+- Student: `jatinranaprep@gmail.com`
+with bcrypt-hashed password hashes stored in `User.passwordHash`.
+
+### Reason
+Allows seamless authentication testing and immediate access to role-tailored dashboards across environments without manual registration steps.
+
+---
+
+---
+
+## Decision: Single Unified `/dashboard` Route Architecture
+
+### Context
+Transitioning from separate `/admin`, `/teacher`, and `/student` URL routes to a single unified `/dashboard` route.
+
+### Decision
+We established a single unified dashboard route at `/dashboard` (`app/(dashboard)/dashboard/page.tsx`). Upon sign-in, all authenticated users land on `/dashboard`, where the app inspects their role (`ADMIN`, `TEACHER`, or `STUDENT`) and automatically presents their role-tailored view and sidebar.
+
+### Reason
+Eliminates URL fragmentation, prevents confusion on login, provides a clean single dashboard URL structure, and dynamically renders the exact UI/UX and functionalities required for each role.
+
+

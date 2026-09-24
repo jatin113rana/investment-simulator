@@ -11,11 +11,16 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:push": "prisma db push",
-    "db:generate": "prisma generate"
+    "db:generate": "prisma generate",
+    "db:seed": "prisma db seed"
+  },
+  "prisma": {
+    "seed": "npx tsx prisma/seed.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.5",
     "@prisma/client": "^6.4.1",
+    "bcryptjs": "^2.4.3",
     "clsx": "^2.1.1",
     "decimal.js": "^10.5.0",
     "lucide-react": "^0.477.0",
@@ -27,6 +32,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.0",
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^22.13.9",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
@@ -35,6 +41,7 @@
     "postcss": "^8.5.3",
     "prisma": "^6.4.1",
     "tailwindcss": "^3.4.17",
+    "tsx": "^4.19.2",
     "typescript": "^5.8.2",
     "vitest": "^3.0.7"
   }
