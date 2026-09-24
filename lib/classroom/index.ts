@@ -8,7 +8,8 @@ import Decimal from "decimal.js";
 import { Role } from "@prisma/client";
 
 /**
- * Creates a new classroom for the authenticated Teacher.
+ * Creates a new classroom for the authenticated Teacher or Admin.
+ * Strictly forbidden for Student accounts.
  */
 export async function createClassroom(input: { name: string; startingBalance?: number }) {
   const dbUser = await syncCurrentUser(Role.TEACHER);
@@ -16,13 +17,9 @@ export async function createClassroom(input: { name: string; startingBalance?: n
     throw new Error("Unauthorized: Please sign in to create a classroom.");
   }
 
-  // Ensure user is Teacher or Admin
-  if (dbUser.role === Role.STUDENT) {
-    // Elevate to TEACHER if creating a classroom
-    await prisma.user.update({
-      where: { id: dbUser.id },
-      data: { role: Role.TEACHER },
-    });
+  // Strictly enforce that only Teachers and Admins can create classrooms
+  if (dbUser.role !== Role.TEACHER && dbUser.role !== Role.ADMIN) {
+    throw new Error("Forbidden: Only Teachers and Admins can create and share classroom codes.");
   }
 
   const parsed = createClassroomSchema.parse(input);
@@ -50,11 +47,15 @@ export async function createClassroom(input: { name: string; startingBalance?: n
 }
 
 /**
- * Retrieves all classrooms created by the authenticated Teacher.
+ * Retrieves all classrooms created by the authenticated Teacher or Admin.
  */
 export async function getTeacherClassrooms() {
   const dbUser = await syncCurrentUser(Role.TEACHER);
   if (!dbUser) {
+    return [];
+  }
+
+  if (dbUser.role !== Role.TEACHER && dbUser.role !== Role.ADMIN) {
     return [];
   }
 

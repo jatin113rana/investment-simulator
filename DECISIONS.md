@@ -215,15 +215,36 @@ Allows seamless authentication testing and immediate access to role-tailored das
 
 ---
 
-## Decision: Single Unified `/dashboard` Route Architecture
+---
+
+## Decision: Atomic Virtual Trading Engine & Decimal Ledger
 
 ### Context
-Transitioning from separate `/admin`, `/teacher`, and `/student` URL routes to a single unified `/dashboard` route.
+Virtual trades (buying and selling Indian mutual funds) require strict mathematical precision, cash sufficiency validation, unit holdings calculation, and immutable audit ledgers.
 
 ### Decision
-We established a single unified dashboard route at `/dashboard` (`app/(dashboard)/dashboard/page.tsx`). Upon sign-in, all authenticated users land on `/dashboard`, where the app inspects their role (`ADMIN`, `TEACHER`, or `STUDENT`) and automatically presents their role-tailored view and sidebar.
+We built `executeBuyOrder` (`lib/portfolio/buy.ts`) and `executeSellOrder` (`lib/portfolio/sell.ts`) running inside atomic `prisma.$transaction` blocks. All amounts, units, NAVs, and total investments use `Decimal.js` and `@db.Decimal(18, 4)`.
 
 ### Reason
-Eliminates URL fragmentation, prevents confusion on login, provides a clean single dashboard URL structure, and dynamically renders the exact UI/UX and functionalities required for each role.
+Guarantees that no partial trade state can occur, prevents penny rounding drift, and ensures absolute financial accuracy for all virtual portfolios.
+
+---
+
+---
+
+## Decision: Strict Role Hierarchy (Student Default, Admin-Only Teacher Provisioning, Teacher/Admin Classroom Creation)
+
+### Context
+Enforcing clear authorization boundaries for user registration and classroom creation.
+
+### Decision
+1. **Default Signup Role**: All new self-service accounts created via public signup default strictly to `STUDENT` in `syncCurrentUser()`.
+2. **Teacher Account Provisioning**: `TEACHER` accounts can ONLY be created or assigned by an `ADMIN` via `createUserByAdmin()` or `updateUserRole()` in `lib/admin/index.ts`.
+3. **Classroom Creation Guard**: `createClassroom()` in `lib/classroom/index.ts` strictly rejects any creation requests from `STUDENT` accounts. Only `TEACHER` and `ADMIN` roles can generate and share classroom join codes.
+
+### Reason
+Prevents unauthorized classroom creation, maintains administrative control over teacher accounts, and ensures students can only participate in classrooms via valid join codes.
+
+
 
 

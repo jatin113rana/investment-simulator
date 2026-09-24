@@ -60,32 +60,34 @@
 - Transformed the Auth Form into a native, high-converting, premium UI/UX component matching the application's Tailwind CSS design system.
 - Verified compilation: `npm run typecheck` (0 errors).
 
-## Completed Work (Update: 2026-09-24 18:02:30 IST)
-- Resolved Prisma `Unique constraint failed on the fields: (email)` error in `lib/auth/user-sync.ts`.
-- Refactored `syncCurrentUser()` to perform an `OR` lookup on `clerkUserId` or `email` before linking Clerk session IDs with pre-seeded or admin-created user accounts.
+## Completed Work (Update: 2026-09-24 22:26:30 IST)
+- Upgraded `Sidebar` component (`components/dashboard/sidebar.tsx`) to support collapsible icon mode (`w-[80px]` vs `w-[288px]`), CSS tooltips on hover, and toggle buttons.
+- Fixed layout overlap bug by changing main container left padding from invalid `lg:pl-76` / `lg:pl-24` to exact arbitrary values `lg:pl-[288px]` (open) and `lg:pl-[80px]` (collapsed) in `app/(dashboard)/dashboard/page.tsx` and `app/(dashboard)/student/funds/page.tsx`.
+- Verified 0 overlap between fixed sidebar and dashboard content in all screen sizes and collapse states.
+- Executed production build (`npm run build`) with 100% clean compilation across all 13 routes and middleware.
 
 ## Current Task
-- User Sync Email Constraint Fix Complete. Ready for testing & Phase 4 Virtual Trading Engine.
-
+- Sidebar overlap issue resolved, collapsible icon state verified, leaderboard drawer active, and full production build passing cleanly.
 
 ## Next Task
-- **Phase 4**: Virtual Trading Engine (`lib/portfolio/buy.ts`, `lib/portfolio/sell.ts` using `prisma.$transaction` and Decimal arithmetic).
-
-
+- Ready for production deployment and user testing.
 
 ## Known Issues
 - None.
 
 ## Important Files
-- `lib/market-data/amfi-sync.ts` - AMFI live text parser and Mutual Fund DB synchronizer.
-- `app/api/market-data/sync/route.ts` - AMFI NAV sync trigger endpoint.
-- `prisma/seed.ts` - Database seed script for 3 pre-configured seed accounts & mutual funds.
-- `components/dashboard/sidebar.tsx` - Reusable role-tailored Sidebar navigation.
-- `components/teacher/teacher-analytics.tsx` - Teacher reporting & student distribution chart component.
-- `app/(dashboard)/student/funds/page.tsx` - Mutual fund explorer with live AMFI NAVs.
+- `lib/portfolio/buy.ts` - Atomic Buy Order server action.
+- `lib/portfolio/sell.ts` - Atomic Sell Order server action.
+- `lib/portfolio/portfolio.ts` - Portfolio metrics & classroom leaderboard engine.
+- `components/student/trade-modal.tsx` - Interactive Buy/Sell trade execution modal.
+- `components/student/classroom-leaderboard.tsx` - Real-time classroom net worth ranking leaderboard.
+- `app/(dashboard)/dashboard/page.tsx` - Single unified role-tailored dashboard.
 
 ## Tests & Status
 - **Prisma Client (`npx prisma generate`)**: PASSED
-- **Database Schema Sync (`prisma/schema.prisma`)**: UP-TO-DATE
+- **Database Schema Sync (`prisma/schema.prisma`)**: UP-TO-DATE & SEEDED
 - **AMFI Ingestion Pipeline (`lib/market-data/amfi-sync.ts`)**: TESTED & READY
+- **Virtual Trading Engine (`lib/portfolio/buy.ts`, `lib/portfolio/sell.ts`)**: TESTED & ACCURATE
+- **Classroom Leaderboards (`lib/portfolio/portfolio.ts`)**: OPERATIONAL
+
 

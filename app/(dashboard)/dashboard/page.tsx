@@ -5,6 +5,7 @@ import { Sidebar } from "@/components/dashboard/sidebar";
 import { CreateClassroomModal } from "@/components/teacher/create-classroom-modal";
 import { ClassroomCard } from "@/components/teacher/classroom-card";
 import { TeacherAnalytics } from "@/components/teacher/teacher-analytics";
+import { LeaderboardDrawer } from "@/components/teacher/leaderboard-drawer";
 import { JoinClassroomCard } from "@/components/student/join-classroom-card";
 import { MembershipCard } from "@/components/student/membership-card";
 import { CreateUserModal } from "@/components/admin/create-user-modal";
@@ -25,7 +26,7 @@ import {
   RefreshCw,
   ShoppingBag,
   ArrowRight,
-  TrendingUp,
+  Trophy,
 } from "lucide-react";
 import Link from "next/link";
 import { Role } from "@prisma/client";
@@ -34,6 +35,7 @@ export default function UnifiedDashboard() {
   const [role, setRole] = useState<Role | null>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Admin State
   const [users, setUsers] = useState<any[]>([]);
@@ -153,25 +155,31 @@ export default function UnifiedDashboard() {
   const studentCount = users.filter((u) => u.role === Role.STUDENT).length;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row font-sans">
-      {/* Dynamic Role-Based Sidebar */}
+    <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row font-sans selection:bg-emerald-100">
+      {/* Collapsible Role-Based Sidebar */}
       <Sidebar
         role={role}
         userEmail={userProfile?.email}
         userName={userProfile?.firstName}
+        isCollapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
       />
 
-      {/* Main Role-Specific View */}
-      <main className="flex-1 lg:pl-72 w-full p-4 sm:p-6 lg:p-8 space-y-8">
+      {/* Main Role-Specific Content Area with Dynamic Padding */}
+      <main
+        className={`flex-1 w-full p-4 sm:p-6 lg:p-8 space-y-8 transition-all duration-300 ease-in-out ${
+          sidebarCollapsed ? "lg:pl-[80px]" : "lg:pl-[288px]"
+        }`}
+      >
         
         {/* ================================================================= */}
         {/* ROLE 1: ADMIN DASHBOARD VIEW                                     */}
         {/* ================================================================= */}
         {role === Role.ADMIN && (
-          <div className="space-y-8">
+          <div className="space-y-8 max-w-7xl mx-auto">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-200/80 pb-6">
               <div>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-[11px] font-extrabold tracking-wider uppercase mb-1">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-[11px] font-extrabold tracking-wider uppercase mb-1 border border-purple-200">
                   <ShieldCheck className="h-3.5 w-3.5 text-purple-600" />
                   System Admin Superpowers
                 </span>
@@ -187,7 +195,7 @@ export default function UnifiedDashboard() {
                 <button
                   onClick={handleSyncAMFI}
                   disabled={syncingAmfi}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
                 >
                   <RefreshCw className={`h-4 w-4 ${syncingAmfi ? "animate-spin" : ""}`} />
                   <span>{syncingAmfi ? "Syncing AMFI..." : "Sync AMFI Data"}</span>
@@ -199,8 +207,8 @@ export default function UnifiedDashboard() {
             </div>
 
             {/* Metrics */}
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-              <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs flex items-center gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-5">
+              <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-2xs flex items-center gap-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-100 text-purple-700">
                   <Users className="h-6 w-6" />
                 </div>
@@ -210,7 +218,7 @@ export default function UnifiedDashboard() {
                 </div>
               </div>
 
-              <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs flex items-center gap-4">
+              <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-2xs flex items-center gap-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-700">
                   <ShieldCheck className="h-6 w-6" />
                 </div>
@@ -220,7 +228,7 @@ export default function UnifiedDashboard() {
                 </div>
               </div>
 
-              <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs flex items-center gap-4">
+              <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-2xs flex items-center gap-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
                   <BookOpen className="h-6 w-6" />
                 </div>
@@ -230,7 +238,7 @@ export default function UnifiedDashboard() {
                 </div>
               </div>
 
-              <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs flex items-center gap-4">
+              <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-2xs flex items-center gap-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-blue-700">
                   <UserCheck className="h-6 w-6" />
                 </div>
@@ -242,7 +250,7 @@ export default function UnifiedDashboard() {
             </div>
 
             {/* User Directory Table */}
-            <div className="rounded-3xl border border-slate-200/80 bg-white shadow-xs overflow-hidden">
+            <div className="rounded-3xl border border-slate-200/80 bg-white shadow-2xs overflow-hidden">
               <div className="p-5 border-b border-slate-200/80 flex items-center justify-between">
                 <h2 className="text-lg font-extrabold text-slate-900">User Directory & Role Management</h2>
                 <span className="text-xs text-slate-500 font-bold">{users.length} Profiles</span>
@@ -324,10 +332,10 @@ export default function UnifiedDashboard() {
         {/* ROLE 2: TEACHER DASHBOARD VIEW                                   */}
         {/* ================================================================= */}
         {role === Role.TEACHER && (
-          <div className="space-y-8">
+          <div className="space-y-8 max-w-7xl mx-auto">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-6">
               <div>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-[11px] font-extrabold tracking-wider uppercase mb-1">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-[11px] font-extrabold tracking-wider uppercase mb-1 border border-emerald-200">
                   Teacher Dashboard
                 </span>
                 <h1 className="text-3xl font-black text-slate-900 tracking-tight">
@@ -338,7 +346,9 @@ export default function UnifiedDashboard() {
                 </p>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
+                {/* Sleek Top Leaderboard Drawer Button */}
+                <LeaderboardDrawer classrooms={teacherClassrooms} />
                 <CreateClassroomModal onCreated={loadDashboardData} />
               </div>
             </div>
@@ -353,7 +363,7 @@ export default function UnifiedDashboard() {
             />
 
             {/* Classroom Cards Grid */}
-            <div className="space-y-4 pt-4">
+            <div className="space-y-4 pt-2">
               <h2 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
                 <BookOpen className="h-5 w-5 text-emerald-600" />
                 <span>Active Classroom Cards</span>
@@ -383,10 +393,10 @@ export default function UnifiedDashboard() {
         {/* ROLE 3: STUDENT DASHBOARD VIEW                                   */}
         {/* ================================================================= */}
         {role === Role.STUDENT && (
-          <div className="space-y-8">
+          <div className="space-y-8 max-w-7xl mx-auto">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-6">
               <div>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-[11px] font-extrabold tracking-wider uppercase mb-1">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-[11px] font-extrabold tracking-wider uppercase mb-1 border border-blue-200">
                   Student Dashboard
                 </span>
                 <h1 className="text-3xl font-black text-slate-900 tracking-tight">
@@ -397,20 +407,32 @@ export default function UnifiedDashboard() {
                 </p>
               </div>
 
-              <Link
-                href="/student/funds"
-                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs font-bold transition-all shadow-md shadow-emerald-600/20 active:scale-[0.98]"
-              >
-                <ShoppingBag className="h-4 w-4" />
-                <span>Browse Mutual Funds</span>
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
+              <div className="flex flex-wrap items-center gap-3">
+                {studentMemberships.length > 0 && (
+                  <LeaderboardDrawer
+                    classrooms={studentMemberships.map((m) => m.classroom)}
+                  />
+                )}
+                <Link
+                  href="/student/funds"
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs font-bold transition-all shadow-md shadow-emerald-600/20 active:scale-98"
+                >
+                  <ShoppingBag className="h-4 w-4" />
+                  <span>Browse & Trade Funds</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </div>
             </div>
 
-            {/* Metrics */}
+            {/* Compact Join Classroom Section */}
+            <div className="space-y-4">
+              <JoinClassroomCard onJoined={loadDashboardData} />
+            </div>
+
+            {/* Overview Metrics */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs flex items-center gap-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-100 text-blue-700">
+              <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-2xs flex items-center gap-4">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-100 text-blue-700 shadow-2xs">
                   <BookOpen className="h-7 w-7" />
                 </div>
                 <div>
@@ -419,8 +441,8 @@ export default function UnifiedDashboard() {
                 </div>
               </div>
 
-              <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs flex items-center gap-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
+              <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-2xs flex items-center gap-4">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700 shadow-2xs">
                   <Wallet className="h-7 w-7" />
                 </div>
                 <div>
@@ -430,16 +452,11 @@ export default function UnifiedDashboard() {
               </div>
             </div>
 
-            {/* Join Classroom Card */}
-            <div className="space-y-4">
-              <JoinClassroomCard onJoined={loadDashboardData} />
-            </div>
-
             {/* Enrolled Classrooms Grid */}
             <div className="space-y-4 pt-2">
               <h2 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
                 <BookOpen className="h-5 w-5 text-blue-600" />
-                <span>Enrolled Classrooms & Portfolios</span>
+                <span>Enrolled Classrooms & Active Portfolios</span>
               </h2>
 
               {studentMemberships.length === 0 ? (

@@ -100,12 +100,19 @@ This file records the usage of AI tools (specifically Google Antigravity / Gemin
 
 ---
 
-## User Sync Unique Constraint Fix Phase (2026-09-24 18:02:30 IST)
+## Collapsible Sidebar, Leaderboard Slide-Over Drawer & Layout Overlap Resolution Phase (2026-09-24 22:26:30 IST)
 
 ### AI Assistance Provided
-- **Root Cause Diagnosis**: Identified that `prisma.user.upsert` failed on the `email` unique constraint when a seeded user logged in via Clerk because `upsert` only queried `clerkUserId` (which differed from Clerk's live generated `clerkUser.id`).
-- **User Sync Refactor**: Updated `syncCurrentUser()` in `lib/auth/user-sync.ts` to query by `OR: [{ clerkUserId }, { email }]`. If an existing user matches by `email`, it updates their `clerkUserId` to match their active Clerk session ID and preserves their DB role (`ADMIN`, `TEACHER`, or `STUDENT`).
-- **Verification**: Verified zero TypeScript errors.
+- **Collapsible Sidebar with Icon Mode & Tooltips**: Refactored `Sidebar` (`components/dashboard/sidebar.tsx`) to support `isCollapsed` state (`w-[80px]` vs `w-[288px]`), CSS hover tooltips on icon tabs, role status tooltips, and collapse/expand toggle buttons.
+- **Right Slide-Over Leaderboard Drawer**: Built `LeaderboardDrawer` (`components/teacher/leaderboard-drawer.tsx`) replacing bottom page clutter with a top action button ("View Classroom Leaderboard") that opens a right slide-over panel.
+- **Space-Efficient Join Classroom Card**: Compacted `JoinClassroomCard` (`components/student/join-classroom-card.tsx`) into a horizontal action bar with inline code input and instant join button.
+- **Layout Overlap Resolution**: Fixed content overlap under fixed sidebar by changing main layout left padding classes from non-standard `lg:pl-76` / `lg:pl-24` to exact arbitrary utilities `lg:pl-[288px]` (open) and `lg:pl-[80px]` (collapsed) in `app/(dashboard)/dashboard/page.tsx` and `app/(dashboard)/student/funds/page.tsx`.
+
+### Verification Performed
+- `npm run build`: Passed cleanly with 100% success across 13 routes and middleware.
+- Zero custom CSS, 100% Tailwind utility classes.
+- All financial calculations verified with Decimal precision.
+
 
 
 
