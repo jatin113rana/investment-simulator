@@ -230,6 +230,22 @@ Guarantees that no partial trade state can occur, prevents penny rounding drift,
 
 ---
 
+## Decision: Serializable ACID Financial State Transitions
+
+### Context
+Buy and sell operations update multiple related records: classroom cash, holdings, and the immutable transaction ledger. Classroom enrollment and admin assignment also allocate starting virtual cash while creating a membership.
+
+### Decision
+All buy, sell, student enrollment, and admin assignment operations use a single PostgreSQL `Serializable` transaction through `runSerializableTransaction()`. Serialization conflicts (`P2034`) are retried up to three times. Financial reads, authorization checks, balance/holding validation, mutations, and ledger writes occur inside the transaction boundary.
+
+### Reason
+Serializable isolation prevents concurrent trades from validating stale cash or units and prevents duplicate enrollment races from allocating starting cash twice. Atomic commit guarantees that related state changes either all succeed or all roll back.
+
+### Tradeoffs
+Serializable transactions can retry or fail under contention, adding small latency during concurrent activity. The retry helper handles expected serialization conflicts while preserving correctness over throughput.
+
+---
+
 ---
 
 ## Decision: Strict Role Hierarchy (Student Default, Admin-Only Teacher Provisioning, Teacher/Admin Classroom Creation)

@@ -2,12 +2,21 @@
 
 import { syncCurrentUser } from "./user-sync";
 import { Role } from "@prisma/client";
+import { auth } from "@clerk/nextjs/server";
+import prisma from "@/lib/db/db";
 
 /**
  * Retrieves the currently authenticated user from Neon PostgreSQL with their role.
  */
 export async function getCurrentUserWithRole() {
-  return await syncCurrentUser();
+  const { userId } = await auth();
+  if (!userId) return null;
+
+  const existingUser = await prisma.user.findUnique({
+    where: { clerkUserId: userId },
+  });
+
+  return existingUser || syncCurrentUser();
 }
 
 /**

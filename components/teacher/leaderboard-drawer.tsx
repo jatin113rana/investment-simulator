@@ -30,7 +30,7 @@ export function LeaderboardDrawer({ classrooms }: LeaderboardDrawerProps) {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-2xl text-xs font-black shadow-md shadow-amber-500/20 active:scale-95 transition-all cursor-pointer"
+        className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-lg text-xs font-black shadow-md shadow-amber-500/20 active:scale-95 transition-all cursor-pointer"
       >
         <Trophy className="h-4 w-4 text-amber-100" />
         <span>View Classroom Leaderboard</span>
@@ -52,7 +52,7 @@ export function LeaderboardDrawer({ classrooms }: LeaderboardDrawerProps) {
               {/* Drawer Top Header */}
               <div className="p-5 border-b border-slate-200/80 flex items-center justify-between bg-slate-50/50">
                 <div className="flex items-center gap-2">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
                     <Trophy className="h-5 w-5" />
                   </div>
                   <div>
@@ -60,14 +60,14 @@ export function LeaderboardDrawer({ classrooms }: LeaderboardDrawerProps) {
                       Live Rankings
                     </h3>
                     <p className="text-[11px] text-slate-500 font-medium">
-                      Real-time net worth rankings & performance
+                      Net worth rankings & performance
                     </p>
                   </div>
                 </div>
 
                 <button
                   onClick={() => setOpen(false)}
-                  className="p-2 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100 transition-colors"
+                  className="p-2 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -82,7 +82,7 @@ export function LeaderboardDrawer({ classrooms }: LeaderboardDrawerProps) {
                   <select
                     value={selectedClassroomId}
                     onChange={(e) => setSelectedClassroomId(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none focus:border-amber-500"
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none focus:border-amber-500"
                   >
                     {classrooms.map((c) => (
                       <option key={c.id} value={c.id}>

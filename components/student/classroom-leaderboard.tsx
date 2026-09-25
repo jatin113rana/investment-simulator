@@ -43,7 +43,7 @@ export function ClassroomLeaderboard({ classroomId, classroomName }: ClassroomLe
   };
 
   return (
-    <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-6">
+    <div className="bg-white rounded-lg p-6 border border-slate-200/80 shadow-xs space-y-6">
       <div className="flex items-center justify-between border-b border-slate-100 pb-4">
         <div>
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-amber-100 text-amber-800 rounded-full text-[10px] font-black tracking-wider uppercase mb-1">
@@ -57,7 +57,7 @@ export function ClassroomLeaderboard({ classroomId, classroomName }: ClassroomLe
 
         <button
           onClick={loadLeaderboard}
-          className="p-2 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100 transition-colors"
+          className="p-2 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
           title="Refresh Leaderboard"
         >
           <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
@@ -81,7 +81,7 @@ export function ClassroomLeaderboard({ classroomId, classroomName }: ClassroomLe
             return (
               <div
                 key={item.studentId}
-                className={`p-4 rounded-2xl border transition-all flex items-center justify-between ${
+                className={`p-4 rounded-lg border transition-all flex items-center justify-between ${
                   item.rank === 1
                     ? "bg-gradient-to-r from-amber-500/10 via-amber-100/30 to-white border-amber-300 shadow-xs"
                     : "bg-slate-50/60 border-slate-200/80 hover:bg-white"

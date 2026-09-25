@@ -15,7 +15,7 @@ The **Investment Simulator** is an educational classroom application designed to
 - **Receive Virtual Capital**: Obtain virtual money allocated for trading within that classroom context.
 - **Browse Mutual Funds**: Search and inspect real mutual funds, historical NAVs, risk levels, and categories.
 - **Execute Investments**: Buy and sell mutual fund units using virtual funds.
-- **Portfolio Tracking**: Monitor real-time virtual portfolio value, asset allocation, gain/loss performance, and transaction history.
+- **Portfolio Tracking**: Monitor virtual portfolio value, asset allocation, gain/loss performance, and transaction history.
 - **Financial Learning**: Learn investment strategies, diversification, and market mechanics by making decisions with real data.
 
 ## Core Product Loop

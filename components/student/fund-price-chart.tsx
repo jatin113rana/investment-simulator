@@ -90,7 +90,7 @@ export function FundPriceChart({ schemeCode, fundName, currentNav }: FundPriceCh
       </div>
 
       {/* Responsive SVG Sparkline Chart */}
-      <div className="w-full bg-slate-50/80 p-2 rounded-2xl border border-slate-200/60 flex items-center justify-center">
+      <div className="w-full bg-slate-50/80 p-2 rounded-lg border border-slate-200/60 flex items-center justify-center">
         <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="w-full h-11 overflow-visible">
           <defs>
             <linearGradient id={`gradient-${schemeCode}`} x1="0" y1="0" x2="0" y2="1">

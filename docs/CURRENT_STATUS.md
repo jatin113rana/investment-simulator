@@ -2,8 +2,8 @@
 
 ## Project Overview
 - **Project Name**: Investment Simulator
-- **Current Development Phase**: Phase 2 & Auth UI Redesign (COMPLETED)
-- **Last Updated Date**: 2026-09-24 16:53:00 IST
+- **Current Development Phase**: Portfolio Hardening, Performance & Security (IN PROGRESS)
+- **Last Updated Date**: 2026-09-25 19:00:00 IST
 
 ## Setup & Schema Status
 - [x] Permanent project memory system created (`PROJECT_CONTEXT.md`, `ARCHITECTURE.md`, `CURRENT_STATUS.md`, `DECISIONS.md`, `AI_LOG.md`).
@@ -60,27 +60,82 @@
 - Transformed the Auth Form into a native, high-converting, premium UI/UX component matching the application's Tailwind CSS design system.
 - Verified compilation: `npm run typecheck` (0 errors).
 
-## Completed Work (Update: 2026-09-24 22:26:30 IST)
-- Upgraded `Sidebar` component (`components/dashboard/sidebar.tsx`) to support collapsible icon mode (`w-[80px]` vs `w-[288px]`), CSS tooltips on hover, and toggle buttons.
-- Fixed layout overlap bug by changing main container left padding from invalid `lg:pl-76` / `lg:pl-24` to exact arbitrary values `lg:pl-[288px]` (open) and `lg:pl-[80px]` (collapsed) in `app/(dashboard)/dashboard/page.tsx` and `app/(dashboard)/student/funds/page.tsx`.
-- Verified 0 overlap between fixed sidebar and dashboard content in all screen sizes and collapse states.
-- Executed production build (`npm run build`) with 100% clean compilation across all 13 routes and middleware.
+## Completed Work (Update: 2026-09-25 16:38:40 IST)
+- Resolved root cause of sidebar tab order/content shifts across Admin, Teacher, and Student roles by adding dynamic role resolution (`fetchUserRoleAndRedirectPath()`) in `app/(dashboard)/student/funds/page.tsx` so the sidebar preserves the active user's true role (`ADMIN`, `TEACHER`, `STUDENT`) when navigating to mutual funds.
+- Standardized tab items and fixed display order across all 3 roles in `Sidebar` (`components/dashboard/sidebar.tsx`):
+  - **ADMIN**: 1. `Dashboard Overview` (`/dashboard`), 2. `User Directory` (`/dashboard#users`), 3. `System Classrooms` (`/admin/classrooms`), 4. `AMFI Mutual Funds` (`/student/funds`).
+  - **TEACHER**: 1. `Dashboard & Analytics` (`/dashboard`), 2. `Classroom Roster` (`/dashboard#roster`), 3. `Browse Mutual Funds` (`/student/funds`).
+  - **STUDENT**: 1. `My Portfolios` (`/dashboard`), 2. `Enrolled Classrooms` (`/student/classrooms`), 3. `Browse Mutual Funds` (`/student/funds`).
+- Executed production build (`npm run build`) with 100% clean compilation across all 15 static/dynamic routes and middleware.
 
 ## Current Task
-- Sidebar overlap issue resolved, collapsible icon state verified, leaderboard drawer active, and full production build passing cleanly.
+- Role-consistent dashboards, dedicated classroom routes, teacher portfolio analytics, student aggregate portfolio metrics, and route-based holdings details are implemented and verified with 0 editor diagnostics.
 
 ## Next Task
-- Ready for production deployment and user testing.
+- Production deployment and user testing, including responsive verification of the student portfolio details route and trade refresh behavior.
 
 ## Known Issues
-- None.
+- Full command-line verification was not run during the latest UI route refactor; editor diagnostics are clean for the touched files.
+
+## Completed Work (Update: 2026-09-25 17:00:00 IST)
+- Moved student classroom portfolio details from a modal/dialog interaction to the dedicated dynamic route `/student/classrooms/[membershipId]`.
+- Reworked `PortfolioDetailsModal` into a route link wrapper and reusable `PortfolioDetailsView`, preserving holdings, P&L, trade log, and buy/sell actions.
+- Added route-level loading and not-found states with student authentication and membership lookup through `getStudentMemberships()`.
+- Upgraded the full-page holdings experience with premium performance summary cards, best-fund callout, responsive active holding cards, P&L emphasis, and allocation bars.
+- Removed the student dashboard join-classroom widget and added enrolled classroom count, available cash, total net worth, and overall return P&L metrics to My Portfolios.
+- Added a dedicated teacher classroom roster route with per-class allocation, student count, and P&L; replaced teacher dashboard classroom cards with aggregate analytics.
+
+## Completed Work (Update: 2026-09-25 17:20:00 IST)
+- Separated the mutual-fund explorer by role: students use `/student/funds`, teachers use `/teacher/funds`, and admins use `/admin/funds`.
+- Updated role-specific sidebar links so teacher and admin navigation no longer redirects into the student route or changes sidebar layout after navigation.
+- Extracted the shared mutual-fund explorer into `components/student/fund-explorer.tsx` with fixed role input, role-specific headings, student-only trading controls, and read-only teacher/admin catalog views.
+
+## Completed Work (Update: 2026-09-25 17:40:00 IST)
+- Removed external AMFI synchronization from normal fund-page loads. Fund pages now read active records directly through `/api/market-data/funds` and `getMutualFunds()`.
+- Added short-lived private caching for fund catalog responses and NAV history responses to reduce repeated database work during navigation and chart loading.
+- Restricted `/api/market-data/sync` to `ADMIN` users and kept ingestion as an explicit POST action from the admin workflow.
+- Added a direct database projection selecting only required fund fields and converting Prisma Decimal NAV values at the API boundary.
+
+## Completed Work (Update: 2026-09-25 18:00:00 IST)
+- Optimized unified dashboard navigation by changing normal role lookup from write-on-read Clerk synchronization to a read-only `clerkUserId` lookup.
+- Added `getStudentPortfolioSummaries()` so My Portfolios loads summary holdings values without transaction history or full fund relation payloads.
+- Added a Strict Mode initial-load guard to prevent duplicate dashboard effects during development remounts.
+- Updated teacher and admin read paths to use the read-only role lookup while preserving explicit synchronization for onboarding and mutations.
+- Verified with `npm run typecheck` (0 errors).
+
+## Completed Work (Update: 2026-09-25 18:15:00 IST)
+- Disabled automatic sidebar link prefetching to prevent a dashboard route request before the user clicks My Portfolios or Dashboard.
+- Added a shared five-second dashboard request/cache layer to deduplicate simultaneous and rapid remount loads.
+- Updated dashboard mutations and trade refreshes to bypass the cache and reload current data explicitly.
+- Verified with `npm run typecheck` (0 errors).
+
+## Completed Work (Update: 2026-09-25 18:25:00 IST)
+- Deduplicated the student Enrolled Classrooms load with a five-second shared membership request/cache and an initial Strict Mode load guard.
+- Parallelized role and classroom data loading while keeping join and trade refreshes forceful.
+- Updated detailed `getStudentMemberships()` reads to use the read-only authenticated user lookup.
+- Focused editor diagnostics pass; the environment skipped the final command-line typecheck rerun.
+
+## Completed Work (Update: 2026-09-25 18:40:00 IST)
+- Added `runSerializableTransaction()` with three retries for PostgreSQL serialization conflicts.
+- Moved buy/sell membership, fund, holding, balance, and ledger operations into serializable ACID transactions.
+- Made classroom joining and admin student assignment atomic, including duplicate-enrollment handling.
+- Buy/sell flows now use read-only role lookup and avoid stale pre-transaction financial reads.
+- Verified with `npm run typecheck` (0 errors).
+
+## Completed Work (Update: 2026-09-25 19:00:00 IST)
+- Fixed NAV history ordering to return the latest 14 records in chronological display order.
+- Reduced portfolio query size: classroom lists and fund browsing use lightweight summaries; portfolio detail loads one membership with the latest 50 transactions.
+- Added process-local rate limiting for fund/history APIs, AMFI sync, buy/sell actions, classroom joining, and admin student assignment.
+- Added `Retry-After` responses for rate-limited API calls.
+- Production note: replace the in-memory limiter with Redis or another shared store when deploying multiple application instances.
+- Verified with `npm run typecheck` (0 errors).
 
 ## Important Files
 - `lib/portfolio/buy.ts` - Atomic Buy Order server action.
 - `lib/portfolio/sell.ts` - Atomic Sell Order server action.
 - `lib/portfolio/portfolio.ts` - Portfolio metrics & classroom leaderboard engine.
 - `components/student/trade-modal.tsx` - Interactive Buy/Sell trade execution modal.
-- `components/student/classroom-leaderboard.tsx` - Real-time classroom net worth ranking leaderboard.
+- `components/student/classroom-leaderboard.tsx` - Classroom net worth ranking leaderboard.
 - `app/(dashboard)/dashboard/page.tsx` - Single unified role-tailored dashboard.
 
 ## Tests & Status

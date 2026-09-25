@@ -23,7 +23,7 @@ export function Navbar() {
             <>
               <Link
                 href="/dashboard"
-                className="flex items-center gap-1.5 rounded-xl bg-slate-900 px-3.5 py-2 text-xs sm:text-sm font-extrabold text-white shadow-xs hover:bg-slate-800 transition-all"
+                className="flex items-center gap-1.5 rounded-lg bg-slate-900 px-3.5 py-2 text-xs sm:text-sm font-extrabold text-white shadow-xs hover:bg-slate-800 transition-all"
               >
                 <LayoutDashboard className="h-4 w-4 text-emerald-400" />
                 <span>My Dashboard</span>
@@ -37,7 +37,7 @@ export function Navbar() {
           {isLoaded && !isSignedIn && (
             <Link
               href="/"
-              className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 transition-colors"
+              className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 transition-colors"
             >
               <LogIn className="h-4 w-4" />
               <span>Sign In</span>

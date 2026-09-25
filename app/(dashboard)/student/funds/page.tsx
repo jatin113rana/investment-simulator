@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { TradeModal } from "@/components/student/trade-modal";
 import { FundPriceChart } from "@/components/student/fund-price-chart";
-import { getStudentMemberships } from "@/lib/classroom";
+import { getStudentPortfolioSummaries } from "@/lib/classroom";
 import {
   TrendingUp,
   Search,
@@ -27,7 +27,11 @@ interface MutualFundItem {
   updatedAt: string;
 }
 
+import { fetchUserRoleAndRedirectPath } from "@/lib/auth/rbac";
+
 export default function StudentFundsPage() {
+  const [role, setRole] = useState<Role | null>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const [funds, setFunds] = useState<MutualFundItem[]>([]);
   const [memberships, setMemberships] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,10 +43,16 @@ export default function StudentFundsPage() {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [syncRes, memRes] = await Promise.all([
-        fetch("/api/market-data/sync", { method: "GET" }).then((r) => r.json()),
-        getStudentMemberships().catch(() => []),
+      const [authRes, syncRes, memRes] = await Promise.all([
+        fetchUserRoleAndRedirectPath().catch(() => null),
+        fetch("/api/market-data/funds").then((r) => r.json()).catch(() => null),
+        getStudentPortfolioSummaries().catch(() => []),
       ]);
+
+      if (authRes && authRes.role) {
+        setRole(authRes.role as Role);
+        setUserProfile(authRes);
+      }
 
       if (syncRes && Array.isArray(syncRes.funds)) {
         setFunds(syncRes.funds);
@@ -94,7 +104,9 @@ export default function StudentFundsPage() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row font-sans selection:bg-emerald-100">
       <Sidebar
-        role={Role.STUDENT}
+        role={role || Role.STUDENT}
+        userEmail={userProfile?.email}
+        userName={userProfile?.firstName}
         isCollapsed={sidebarCollapsed}
         onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
       />
@@ -104,12 +116,12 @@ export default function StudentFundsPage() {
           sidebarCollapsed ? "lg:pl-[80px]" : "lg:pl-[288px]"
         }`}
       >
-        <div className="max-w-7xl mx-auto space-y-8">
+        <div className="max-w-7xl mx-auto space-y-8 p-5">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-6">
             <div>
               <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-[11px] font-extrabold tracking-wider uppercase mb-1 border border-emerald-200">
-                Live AMFI NAV Market Data
+                AMFI NAV Market Data
               </span>
               <h1 className="text-3xl font-black text-slate-900 tracking-tight">
                 Indian Mutual Fund Explorer & Trade Desk
@@ -119,14 +131,14 @@ export default function StudentFundsPage() {
               </p>
             </div>
 
-            <button
+            {/* <button
               onClick={handleManualSync}
               disabled={syncing}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
             >
               <RefreshCw className={`h-4 w-4 text-emerald-400 ${syncing ? "animate-spin" : ""}`} />
               <span>{syncing ? "Refreshing NAVs..." : "Refresh Live NAVs"}</span>
-            </button>
+            </button> */}
           </div>
 
           {/* Search & Category Filter Controls */}
@@ -138,17 +150,17 @@ export default function StudentFundsPage() {
                 placeholder="Search scheme name, AMC (e.g. HDFC, Parag Parikh, SBI), or Scheme Code..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all shadow-2xs"
+                className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all shadow-2xs"
               />
             </div>
 
             {/* Category Pills */}
-            <div className="flex flex-wrap gap-2">
+            {/* <div className="flex flex-wrap gap-2">
               {categories.map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition-all cursor-pointer ${
                     selectedCategory === cat
                       ? "bg-emerald-600 text-white shadow-xs"
                       : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
@@ -157,7 +169,7 @@ export default function StudentFundsPage() {
                   {cat}
                 </button>
               ))}
-            </div>
+            </div> */}
           </div>
 
           {/* Mutual Funds Grid */}
@@ -167,7 +179,7 @@ export default function StudentFundsPage() {
               <span className="text-sm font-semibold">Loading AMFI Mutual Fund catalog...</span>
             </div>
           ) : filteredFunds.length === 0 ? (
-            <div className="p-12 text-center bg-white rounded-3xl border border-slate-200 text-slate-500 text-xs font-medium">
+            <div className="p-12 text-center bg-white rounded-lg border border-slate-200 text-slate-500 text-xs font-medium">
               No mutual funds match your search criteria. Try adjusting filters or search terms.
             </div>
           ) : (
@@ -175,7 +187,7 @@ export default function StudentFundsPage() {
               {filteredFunds.map((fund) => (
                 <div
                   key={fund.schemeCode}
-                  className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+                  className="bg-white rounded-lg p-5 border border-slate-200/80 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between space-y-4"
                 >
                   <div className="space-y-3">
                     <div className="flex items-start justify-between gap-2">
@@ -203,11 +215,11 @@ export default function StudentFundsPage() {
                     </div>
 
                     {/* 7-Day NAV Price Trend Line Graph */}
-                    <FundPriceChart
+                    {/* <FundPriceChart
                       schemeCode={fund.schemeCode}
                       fundName={fund.name}
                       currentNav={fund.currentNav}
-                    />
+                    /> */}
                   </div>
 
                   <div className="pt-4 border-t border-slate-100 flex items-center justify-between">

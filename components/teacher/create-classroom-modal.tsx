@@ -37,7 +37,7 @@ export function CreateClassroomModal({ onCreated }: CreateClassroomModalProps) {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 transition-colors w-full sm:w-auto justify-center"
+        className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 transition-colors w-full sm:w-auto justify-center"
       >
         <Plus className="h-4 w-4" />
         <span>Create New Classroom</span>
@@ -45,7 +45,7 @@ export function CreateClassroomModal({ onCreated }: CreateClassroomModalProps) {
 
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fadeIn">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-100 relative">
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-2xl border border-slate-100 relative">
             <button
               onClick={() => setIsOpen(false)}
               className="absolute right-4 top-4 text-slate-400 hover:text-slate-600 rounded-lg p-1"
