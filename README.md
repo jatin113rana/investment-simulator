@@ -157,3 +157,11 @@ npm run db:seed     # Seed Clerk test users and AMFI funds
 - All financial calculations and authoritative NAV checks run on the server.
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/CURRENT_STATUS.md](docs/CURRENT_STATUS.md), and [DECISIONS.md](DECISIONS.md) for deeper project records.
+
+Role	    Email	    Password
+
+Admin:	admin@jatinrana.online	    Insim@123456789
+
+Teacher:	teacher@jatinrana.online	    Insim@123456789
+
+Student:	student@jatinrana.online	    Insim@123456789
