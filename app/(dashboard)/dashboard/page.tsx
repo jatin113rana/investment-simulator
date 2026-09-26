@@ -419,7 +419,7 @@ export default function UnifiedDashboard() {
               classrooms={teacherClassrooms}
             />
 
-            <div className="rounded-lg border border-dashed border-slate-300 bg-white p-6 shadow-2xs flex items-center justify-between gap-4">
+            {/* <div className="rounded-lg border border-dashed border-slate-300 bg-white p-6 shadow-2xs flex items-center justify-between gap-4">
               <div>
                 <h2 className="font-extrabold text-slate-900">Need the full class roster?</h2>
                 <p className="text-xs text-slate-500 mt-1">Review each class&apos;s allocation, students, holdings, and performance in one place.</p>
@@ -427,7 +427,7 @@ export default function UnifiedDashboard() {
               <Link href="/teacher/classrooms" className="shrink-0 inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800">
                 <Users className="h-4 w-4" /> View roster
               </Link>
-            </div>
+            </div> */}
           </div>
         )}
 

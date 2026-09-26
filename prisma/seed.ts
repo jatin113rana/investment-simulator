@@ -1,5 +1,5 @@
 import { PrismaClient, Role } from "@prisma/client";
-import bcrypt from "bcryptjs";
+import { clerkClient } from "@clerk/nextjs/server";
 import { syncAMFIMutualFunds } from "../lib/market-data/amfi-sync";
 
 const prisma = new PrismaClient();
@@ -7,69 +7,89 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("🌱 Starting Database Seeding...");
 
-  // Password hashing for pre-configured accounts
-  const plainPassword = "Insim@123";
-  const passwordHash = await bcrypt.hash(plainPassword, 10);
+  const plainPassword = "Insim@123456789";
+  const clerk = await clerkClient();
+
+  async function provisionClerkUser(email: string, firstName: string, lastName: string) {
+    const existingUsers = await clerk.users.getUserList({ emailAddress: [email], limit: 1 });
+    if (existingUsers.data[0]) {
+      return clerk.users.updateUser(existingUsers.data[0].id, {
+        password: plainPassword,
+        firstName,
+        lastName,
+      });
+    }
+
+    return clerk.users.createUser({
+      emailAddress: [email],
+      password: plainPassword,
+      firstName,
+      lastName,
+    });
+  }
 
   // 1. Seed Admin Account
-  const adminEmail = "jatinranasiwan113@gmail.com";
+  const adminEmail = "admin@jatinrana.online";
+  const clerkAdmin = await provisionClerkUser(adminEmail, "Admin", "Rana");
   const admin = await prisma.user.upsert({
     where: { email: adminEmail },
     update: {
+      clerkUserId: clerkAdmin.id,
       role: Role.ADMIN,
       firstName: "Admin",
       lastName: "Rana",
-      passwordHash,
+      passwordHash: null,
     },
     create: {
-      clerkUserId: "seed_admin_jatin113",
+      clerkUserId: clerkAdmin.id,
       email: adminEmail,
       firstName: "Admin",
       lastName: "Rana",
       role: Role.ADMIN,
-      passwordHash,
     },
   });
   console.log(`✅ Provisioned ADMIN Account: ${admin.email} (${admin.role})`);
 
   // 2. Seed Teacher Account
-  const teacherEmail = "jatinwork1000@gmail.com";
+  const teacherEmail = "teacher@jatinrana.online";
+  const clerkTeacher = await provisionClerkUser(teacherEmail, "Teacher", "Jatin");
   const teacher = await prisma.user.upsert({
     where: { email: teacherEmail },
     update: {
+      clerkUserId: clerkTeacher.id,
       role: Role.TEACHER,
       firstName: "Teacher",
       lastName: "Jatin",
-      passwordHash,
+      passwordHash: null,
     },
     create: {
-      clerkUserId: "seed_teacher_jatin1000",
+      clerkUserId: clerkTeacher.id,
       email: teacherEmail,
       firstName: "Teacher",
       lastName: "Jatin",
       role: Role.TEACHER,
-      passwordHash,
     },
   });
   console.log(`✅ Provisioned TEACHER Account: ${teacher.email} (${teacher.role})`);
 
   // 3. Seed Student Account
-  const studentEmail = "jatinranaprep@gmail.com";
+  const studentEmail = "student@jatinrana.online";
+  const clerkStudent = await provisionClerkUser(studentEmail, "Student", "Rana");
   const student = await prisma.user.upsert({
     where: { email: studentEmail },
     update: {
+      clerkUserId: clerkStudent.id,
       role: Role.STUDENT,
       firstName: "Student",
       lastName: "Rana",
-      passwordHash,
+      passwordHash: null,
     },
     create: {
-      clerkUserId: "seed_student_jatinprep",
+      clerkUserId: clerkStudent.id,
       email: studentEmail,
       firstName: "Student",
       lastName: "Rana",
       role: Role.STUDENT,
-      passwordHash,
     },
   });
   console.log(`✅ Provisioned STUDENT Account: ${student.email} (${student.role})`);

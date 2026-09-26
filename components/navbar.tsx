@@ -34,7 +34,7 @@ export function Navbar() {
             </>
           )}
 
-          {isLoaded && !isSignedIn && (
+          {/* {isLoaded && !isSignedIn && (
             <Link
               href="/"
               className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 transition-colors"
@@ -42,7 +42,7 @@ export function Navbar() {
               <LogIn className="h-4 w-4" />
               <span>Sign In</span>
             </Link>
-          )}
+          )} */}
         </nav>
       </div>
     </header>

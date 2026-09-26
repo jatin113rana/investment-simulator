@@ -92,7 +92,7 @@ This file records the usage of AI tools (specifically Google Antigravity / Gemin
 ### AI Assistance Provided
 - **AMFI Market Data Ingestion Engine**: Developed `lib/market-data/amfi-sync.ts` parsing live Indian Mutual Fund Net Asset Values (NAVs) from `https://portal.amfiindia.com/spages/NAVAll.txt` and populating `MutualFund` and `FundPriceHistory` tables with top 20 curated funds (Nifty 50, Flexi Cap, Small Cap, Bluechip, Technology).
 - **Market Data Sync API**: Created `/api/market-data/sync` endpoint for triggering daily NAV synchronization.
-- **Pre-configured Seed Accounts**: Created `prisma/seed.ts` script provisioning `jatinranasiwan113@gmail.com` (ADMIN), `jatinwork1000@gmail.com` (TEACHER), `jatinranaprep@gmail.com` (STUDENT) with bcrypt-hashed password (`Insim@123`).
+- **Clerk-Managed Seed Accounts**: Updated `prisma/seed.ts` to provision `admin@jatinrana.online` (ADMIN), `teacher@jatinrana.online` (TEACHER), and `student@jatinrana.online` (STUDENT) through Clerk using the development test password `Insim@123456789`; Prisma stores the linked Clerk IDs without local password hashes.
 - **Role-Based Sidebar Navigation**: Created reusable, responsive `Sidebar` component (`components/dashboard/sidebar.tsx`) supporting role-tailored menus, mobile drawer overlays, and role status badges.
 - **Teacher Analytics & Visual Charts**: Built `TeacherAnalytics` component (`components/teacher/teacher-analytics.tsx`) featuring visual student enrollment distribution charts, classroom metrics, and join code actions.
 - **Mutual Fund Explorer**: Built `app/(dashboard)/student/funds/page.tsx` for searching, filtering, and exploring live AMFI mutual fund NAVs in ₹ (INR).
@@ -204,6 +204,41 @@ This file records the usage of AI tools (specifically Google Antigravity / Gemin
 
 ### Verification Performed
 - `npm run typecheck`: Passed with 0 errors.
+
+## Clerk Identity Deletion Consistency Phase (2026-09-26 10:00:00 IST)
+
+### AI Assistance Provided
+- **Root Cause Fix**: Admin deletion previously removed only the Prisma profile. The remaining Clerk identity could sign in and `syncCurrentUser()` would recreate a new local profile.
+- **Identity Cleanup**: Updated `deleteUserByAdmin()` to resolve the matching Clerk user by email, delete the Clerk identity first, and then delete the Prisma user record.
+- **Failure Safety**: If Clerk deletion fails, the local Prisma record is left intact so the account is not partially deleted.
+
+### Verification Performed
+- `npm run typecheck`: Passed with 0 errors.
+
+## Admin Clerk User Provisioning Phase (2026-09-26 10:20:00 IST)
+
+### AI Assistance Provided
+- **Real Clerk Provisioning**: Replaced placeholder local Clerk IDs in `createUserByAdmin()` with Clerk `createUser()` using the admin-provided email, password, and profile fields.
+- **Password Handling**: Added an 8-character minimum password field to the admin modal; passwords are sent to Clerk and are never persisted in Prisma.
+- **Cross-System Rollback**: If Prisma profile creation fails after Clerk creation, the newly created Clerk identity is deleted to avoid orphan accounts.
+
+### Verification Performed
+- `npm run typecheck`: Passed with 0 errors.
+
+## Current Architecture Documentation Phase (2026-09-26 10:45:00 IST)
+
+### AI Assistance Provided
+- Replaced the outdated `docs/ARCHITECTURE.md` with a current architecture reference covering the implemented Clerk authentication, role access matrix, route map, Prisma schema, ACID transaction flows, AMFI data paths, performance controls, rate limits, security boundaries, migrations, and operational verification commands.
+
+## Development Test Authentication & Identity Synchronization Decision (2026-09-26 10:40:00 IST)
+
+### AI Assistance Provided
+- **Password-Only Assignment Testing**: Documented the development policy to keep Clerk as the only authentication provider while disabling MFA/mandatory new-device verification only in the isolated Clerk development/testing instance.
+- **Controlled Test Accounts**: Documented use of controlled mock or email-alias addresses for development testers, with production verification and MFA policies kept separate.
+- **Clerk/Prisma Consistency**: Recorded that admin user creation provisions the Clerk email/password identity and linked Prisma profile, while admin deletion removes the Clerk identity before the Prisma record so deleted accounts cannot be recreated by `syncCurrentUser()`.
+
+### Verification Performed
+- The policy and identity synchronization behavior are reflected in `DECISIONS.md` and the current admin implementation.
 
 ## Enrolled Classrooms Duplicate Request Fix Phase (2026-09-25 18:25:00 IST)
 

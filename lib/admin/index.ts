@@ -1,5 +1,6 @@
 "use server";
 
+import { clerkClient } from "@clerk/nextjs/server";
 import prisma from "@/lib/db/db";
 import { getCurrentUserWithRole } from "@/lib/auth/rbac";
 import { generateUniqueClassroomCode } from "@/lib/classroom/code-generator";
@@ -12,6 +13,7 @@ import { assertRateLimit, consumeRateLimit } from "@/lib/security/rate-limit";
 
 const createUserByAdminSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
+  password: z.string().min(8, "Password must be at least 8 characters."),
   firstName: z.string().optional(),
   lastName: z.string().optional(),
   role: z.nativeEnum(Role).default(Role.STUDENT),
@@ -54,6 +56,7 @@ export async function getAllUsers() {
  */
 export async function createUserByAdmin(input: {
   email: string;
+  password: string;
   firstName?: string;
   lastName?: string;
   role: Role;
@@ -69,19 +72,33 @@ export async function createUserByAdmin(input: {
     throw new Error("A user with this email address already exists.");
   }
 
-  const placeholderClerkId = `admin_created_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+  const clerk = await clerkClient();
+  const existingClerkUsers = await clerk.users.getUserList({ emailAddress: [parsed.email], limit: 1 });
+  if (existingClerkUsers.data.length > 0) {
+    throw new Error("A Clerk account with this email address already exists.");
+  }
 
-  const user = await prisma.user.create({
-    data: {
-      clerkUserId: placeholderClerkId,
-      email: parsed.email,
-      firstName: parsed.firstName,
-      lastName: parsed.lastName,
-      role: parsed.role,
-    },
+  const clerkUser = await clerk.users.createUser({
+    emailAddress: [parsed.email],
+    password: parsed.password,
+    firstName: parsed.firstName,
+    lastName: parsed.lastName,
   });
 
-  return user;
+  try {
+    return await prisma.user.create({
+      data: {
+        clerkUserId: clerkUser.id,
+        email: parsed.email,
+        firstName: parsed.firstName,
+        lastName: parsed.lastName,
+        role: parsed.role,
+      },
+    });
+  } catch (error) {
+    await clerk.users.deleteUser(clerkUser.id).catch(() => undefined);
+    throw error;
+  }
 }
 
 /**
@@ -107,9 +124,25 @@ export async function deleteUserByAdmin(userId: string) {
     throw new Error("Cannot delete your own admin account.");
   }
 
-  await prisma.user.delete({
+  const user = await prisma.user.findUnique({
     where: { id: userId },
   });
+  if (!user) {
+    throw new Error("User profile not found.");
+  }
+
+  // Remove the Clerk identity first; otherwise the next login recreates the Prisma profile.
+  const clerk = await clerkClient();
+  const clerkUsers = await clerk.users.getUserList({
+    emailAddress: [user.email],
+    limit: 1,
+  });
+  const clerkUser = clerkUsers.data[0];
+  if (clerkUser) {
+    await clerk.users.deleteUser(clerkUser.id);
+  }
+
+  await prisma.user.delete({ where: { id: user.id } });
 
   return { success: true };
 }

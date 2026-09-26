@@ -59,6 +59,7 @@ We needed a type-safe database client and migration tool to interact with Postgr
 
 ### Decision
 We chose Prisma ORM with versioned migration SQL files (`prisma/migrations/`).
+All database table and schema updates must be maintained through new versioned Prisma migrations and applied with the Prisma migration workflow; direct production schema edits are not the source of truth.
 
 ### Reason
 Prisma generates fully typed TypeScript database clients directly from `schema.prisma`. Generating explicit migration files tracks schema history in version control, ensuring smooth environment deployments (`npx prisma migrate deploy`).
@@ -132,6 +133,24 @@ Introduces a third-party managed identity service dependency.
 
 ---
 
+## Decision: Development Password-Only Test Authentication
+
+### Context
+External reviewers and assignment testers need to access the development application using supplied email/password credentials without being blocked by MFA or new-device verification during testing.
+
+### Decision
+Clerk remains the sole authentication provider for both email/password and SSO. MFA and mandatory new-device verification may be disabled only in the isolated Clerk development/testing instance. Test users may use controlled mock addresses such as `student.test@example.com` or verified email aliases; production authentication must retain appropriate verification and MFA policies.
+
+Admin user provisioning and deletion must update both identity systems: Clerk user records and the Prisma `User` profile. Admin-created accounts receive their password in Clerk, while Prisma stores only the real Clerk user ID and role metadata.
+
+### Reason
+This keeps authentication, sessions, password storage, and SSO under Clerk while allowing assignment testing to proceed with predictable password-only test accounts. Synchronizing Clerk and Prisma prevents deleted identities from being recreated and prevents database-only accounts from lacking a valid login identity.
+
+### Tradeoffs
+Disabling MFA reduces security and is strictly limited to development/testing. Mock addresses must not be used for production users, and testers may still encounter Clerk security checks if the instance enforces them.
+
+---
+
 ## Decision: Root Route Auth Consolidation (`/`) & Admin User Provisioning
 
 ### Context
@@ -193,25 +212,6 @@ Atomic transactions guarantee that either all database updates succeed together 
 
 ### Tradeoffs
 Slightly longer transaction lock duration on impacted rows during execution.
-
----
-
-## Decision: Pre-configured Seed Accounts with Bcrypt Hashing
-
-### Context
-Ensuring instant availability of test accounts for all 3 system roles (`ADMIN`, `TEACHER`, `STUDENT`) with fixed email addresses and password `Insim@123`.
-
-### Decision
-We established a database seed script (`prisma/seed.ts`) that provisions:
-- Admin: `jatinranasiwan113@gmail.com`
-- Teacher: `jatinwork1000@gmail.com`
-- Student: `jatinranaprep@gmail.com`
-with bcrypt-hashed password hashes stored in `User.passwordHash`.
-
-### Reason
-Allows seamless authentication testing and immediate access to role-tailored dashboards across environments without manual registration steps.
-
----
 
 ---
 

@@ -130,6 +130,22 @@
 - Production note: replace the in-memory limiter with Redis or another shared store when deploying multiple application instances.
 - Verified with `npm run typecheck` (0 errors).
 
+## Completed Work (Update: 2026-09-26 10:00:00 IST)
+- Fixed admin user deletion so the matching Clerk identity is deleted before the Prisma profile.
+- Prevented deleted users from signing in through Clerk and being recreated by `syncCurrentUser()`.
+- Handles Clerk-created accounts and admin-preprovisioned local profiles by resolving the Clerk identity through the stored email.
+- Verified with `npm run typecheck` (0 errors).
+
+## Completed Work (Update: 2026-09-26 10:20:00 IST)
+- Updated admin Create User provisioning to create the Clerk email/password identity first and store its real Clerk user ID in Prisma.
+- Added password input validation requiring at least 8 characters; application code never stores the password locally.
+- Added rollback cleanup so a failed Prisma insert deletes the newly created Clerk identity.
+- Verified with `npm run typecheck` (0 errors).
+
+## Completed Work (Update: 2026-09-26 10:45:00 IST)
+- Replaced the stale architecture document with a complete current system architecture reference.
+- Documented role permissions, route access, Prisma schemas, Clerk/Prisma identity lifecycle, ACID financial flows, AMFI ingestion, caching, rate limits, migrations, and verification commands.
+
 ## Important Files
 - `lib/portfolio/buy.ts` - Atomic Buy Order server action.
 - `lib/portfolio/sell.ts` - Atomic Sell Order server action.
